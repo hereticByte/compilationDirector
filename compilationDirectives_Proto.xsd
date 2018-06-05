@@ -1,0 +1,946 @@
+<?xml version="1.1" encoding="UTF-8" ?>
+
+<cd:schema xmlns:cd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="https://github.com/hereticByte/compilationDirector/blob/master/compilationDirectives_Proto.xsd"
+            xmlns="https://github.com/hereticByte/compilationDirector/blob/master/compilationDirectives_Proto.xsd"
+            elementFormDefault="qualified">
+
+    <!--
+   See:
+   https://haxe.org/manual/compiler-usage.html
+   -->
+
+    <cd:element name="root">
+        <cd:complexType>
+            <cd:sequence>
+
+                <cd:element name="archive" minOccurs="1" maxOccurs="1">
+                    <cd:complexType>
+                        <cd:all>
+                            <cd:element name="projectFolder" minOccurs="1" maxOccurs="1">
+                                <cd:complexType>
+                                    <!--
+                                        The pathname of the projectFolder is necessary, as the debugger would set
+                                        debugging path as the proejectFolder and would put the archive their.
+                                    -->
+                                    <cd:attribute name="pathName" use="required"/>
+                                </cd:complexType>
+                            </cd:element>
+                            <!--
+                                The excludeList tells, what folders/ files are supposed not to be copied to the
+                                archive/ lib folder.
+                            -->
+                            <cd:element name="excludeList" minOccurs="1" maxOccurs="1">
+                                <cd:complexType>
+                                    <cd:choice minOccurs="0" maxOccurs="unbounded">
+                                        <cd:element name="excludedFolderOrFile">
+                                            <cd:complexType>
+                                                <cd:attribute name="folderOrFileName" use="required"/>
+                                            </cd:complexType>
+                                        </cd:element>
+                                    </cd:choice>
+
+                                </cd:complexType>
+                            </cd:element>
+                        </cd:all>
+                    </cd:complexType>
+                </cd:element>
+                <cd:element name="executeDirective" >
+                    <cd:complexType>
+                        <cd:choice>
+                            <cd:element name="createLibrary"> <!--minOccurs="1"-->
+
+                            </cd:element>
+                            <cd:element name="compile"> <!--minOccurs="1">-->
+                                <cd:complexType>
+                                    <cd:attribute name="taskName" use="required">
+                                        <cd:simpleType>
+                                            <cd:restriction base="cd:string">
+                                                <cd:pattern value="\w+"/>
+                                            </cd:restriction>
+                                        </cd:simpleType>
+                                    </cd:attribute>
+                                </cd:complexType>
+                            </cd:element>
+                        </cd:choice>
+
+
+
+                    </cd:complexType>
+                </cd:element>
+
+                <cd:element name="projectCompilerDirectives">
+                    <cd:complexType>
+                       <cd:all>
+                           <!-- Both elements ( 'createLibrary' and 'compile' may occur at
+                                the same time ). But also either one of them may occur independent from the
+                                other one. -->
+                           <cd:element name="createLibrary" minOccurs="0">
+                               <cd:complexType>
+                                   <cd:all>
+
+                                       <cd:element name="cd_librarySpecifications" minOccurs="1">
+                                           <cd:complexType>
+                                               <cd:all>
+                                                   <!-- ... the marketing name of the version. E.g.: MyLib FireRooster
+                                                            The attribute 'value' may be left empty.-->
+                                                   <cd:element name="alternativeVersionName" minOccurs="1">
+                                                       <cd:complexType>
+                                                           <cd:attribute name="value" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:string">
+                                                                       <cd:pattern value="\w*"/>
+                                                                   </cd:restriction>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                       </cd:complexType>
+                                                   </cd:element>
+                                                   <cd:element name="updateType" type="updateType_type" minOccurs="1"/>
+                                                   <!-- ... /haxe/lib -->
+                                                   <cd:element name="haxeLibFolder" minOccurs="1">
+                                                       <cd:complexType>
+                                                           <cd:attribute name="absolutePath" use="required"/>
+                                                       </cd:complexType>
+                                                   </cd:element>
+
+
+                                                   <!--<cd:element name="excludeFolders" minOccurs="1">
+                                                       <cd:complexType>
+                                                           <cd:choice minOccurs="0" maxOccurs="unbounded">
+                                                               <cd:element name="relativeToTopLevel">
+                                                                   <cd:complexType>
+                                                                       <cd:attribute name="folderName" use="required">
+                                                                           <cd:simpleType>
+                                                                               <cd:restriction base="cd:string">
+                                                                                   <cd:pattern value="\w+"/>
+                                                                               </cd:restriction>
+                                                                           </cd:simpleType>
+                                                                       </cd:attribute>
+                                                                   </cd:complexType>
+                                                               </cd:element>
+                                                           </cd:choice>
+                                                       </cd:complexType>
+                                                   </cd:element>-->
+
+                                               </cd:all>
+
+                                           </cd:complexType>
+                                       </cd:element>
+
+
+
+                                       <cd:element name="haxe_librarySpecifications" minOccurs="1">
+                                           <!--
+                                           {
+                                             "name": "useless_lib",
+                                             "url" : "https://github.com/jasononeil/useless/",
+                                             "license": "MIT",
+                                             "tags": ["cross", "useless"],
+                                             "description": "This library is useless in the same way on every platform.",
+
+                                             "classPath": "src/",
+                                             "releasenote": "Initial release, everything is working correctly.",
+                                           }
+                                           -->
+                                           <cd:complexType>
+                                               <!--"version": ... is not set here, but derived algorithmically,-->
+                                               <cd:attribute name="name" use="required"/>                                               
+                                               <cd:attribute name="url" use="required"/>
+                                               <cd:attribute name="tags" use="required">
+                                                   <cd:simpleType>
+                                                       <cd:restriction base="cd:string">
+                                                           <cd:pattern value="\[?[a-zA-Z0-9_\-]+( *, *[a-zA-Z0-9_\-]+)*\]?"/>
+                                                       </cd:restriction>
+                                                   </cd:simpleType>
+                                               </cd:attribute>
+                                               <cd:attribute name="description" use="required"/>
+                                               <cd:attribute name="classPath" use="required"/>
+                                               <cd:attribute name="releasenote" use="required"/>
+                                           </cd:complexType>
+                                       </cd:element>
+                                       <cd:element name="license"  minOccurs="1">
+                                           <cd:complexType>
+                                               <cd:sequence>
+                                                   <cd:element name="licenseType">
+                                                       <cd:complexType>
+                                                           <cd:attribute name="value" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:string">
+                                                                       <!--
+                                                                       public var proprietary : String = "Proprietary";
+                                                                       public var gpl = "GPL";
+                                                                       public var lgpl = "LGPL";
+                                                                       public var bsd = "BSD";
+                                                                       public var publicLicense = "Public";
+                                                                       public var mit = "MIT";
+                                                                       public var apache = "Apache";
+                                                                       -->
+
+                                                                       <cd:enumeration value="Proprietary"/>
+                                                                       <cd:enumeration value="GPL"/>
+                                                                       <cd:enumeration value="LGPL"/>
+                                                                       <cd:enumeration value="BSD"/>
+                                                                       <cd:enumeration value="Public"/>
+                                                                       <cd:enumeration value="MIT"/>
+                                                                       <cd:enumeration value="Apache"/>
+                                                                   </cd:restriction>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                       </cd:complexType>
+                                                   </cd:element>
+
+                                                   <cd:element name="licenseDescription_file">
+                                                       <cd:complexType>
+                                                           <!-- ... relative from project folder. -->
+                                                           <cd:attribute name="relativePath" use="required"/>
+                                                           <cd:attribute name="fileName" use="required"/>
+                                                       </cd:complexType>
+                                                   </cd:element>
+                                               </cd:sequence>
+                                           </cd:complexType>
+                                       </cd:element>
+
+
+                                       <!--  "contributors": ["Juraj","Jason","Nicolas"], -->
+
+                                       <cd:element name="contributors" minOccurs="1" maxOccurs="1" type="contributorsType"/>
+                                       <cd:element name="binaryversion" minOccurs="0">
+                                           <cd:complexType>
+                                               <cd:attribute name="value">
+                                                   <cd:simpleType>
+                                                       <cd:restriction base="cd:int"/>
+                                                   </cd:simpleType>
+                                               </cd:attribute>
+                                           </cd:complexType>
+                                       </cd:element>
+
+                                       <cd:element name="dependencies" minOccurs="1">
+                                           <cd:complexType>
+                                               <cd:choice minOccurs="0" maxOccurs="unbounded">
+                                                   <cd:element name="dependsOnLib">
+                                                       <!--
+                                                       "dependencies": {
+                                                       "tink_macro": "",
+                                                       "nme": "3.5.5"
+                                                     }
+                                                       -->
+                                                       <cd:complexType>
+                                                           <cd:attribute name="libName" use="required"/>
+                                                           <cd:attribute name="majorVersion" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:int"/>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                           <cd:attribute name="minorVersion" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:int"/>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                           <cd:attribute name="patchVersion" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:int"/>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                           <cd:attribute name="versionState" type="versionState_sympleType" use="required"/>
+                                                           <cd:attribute name="versionStateVersion" use="optional">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:int"/>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                           <cd:attribute name="uniqueSemVers" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:boolean"/>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                       </cd:complexType>
+                                                   </cd:element>
+                                               </cd:choice>
+                                           </cd:complexType>
+
+                                       </cd:element>
+
+                                   </cd:all>
+                               </cd:complexType>
+                           </cd:element>
+                           <cd:element name="compile" minOccurs="0">
+                               <cd:complexType>
+
+                                   <cd:choice minOccurs="1" maxOccurs="unbounded">
+                                       <cd:element name="compilationTasks">
+                                           <cd:complexType>
+                                               <cd:choice minOccurs="1" maxOccurs="unbounded">
+                                                   <cd:element name="task">
+                                                       <cd:complexType>
+                                                           <cd:all>
+                                                               <cd:element name="main_cd_options" type="cd_options_type" minOccurs="0" maxOccurs="1"/>
+                                                               <cd:element name="target" minOccurs="1" maxOccurs="1">
+                                                                   <!--
+                                                                   public var js = "-js";
+                                                                   public var as3 = "-as3";
+                                                                   public var swf = "-swf";
+                                                                   public var neko = "-neko";
+                                                                   public var php = "-php";
+                                                                   public var cs = "-cs";
+                                                                   public var java = "java";
+                                                                   public var python = "-python";
+                                                                   public var lua = "-lua";
+                                                                   public var hl = "-hl";
+                                                                   public var cppia = "-cppia";
+                                                                   public var x = "-x";
+                                                                   public var noOutput = "- -no-output";
+                                                                   public var interp = "- -interp";
+                                                                   -->
+                                                                   <cd:complexType>
+                                                                       <cd:choice minOccurs="1" maxOccurs="unbounded">
+                                                                           <cd:element name="php">
+                                                                               <cd:complexType>
+                                                                                   <cd:complexContent>
+
+                                                                                       <cd:extension base="targetType">
+                                                                                            <cd:all>
+
+                                                                                               <!--
+                                                                                               - -php-lib <filename>
+                                                                                               Select the name for the php lib folder.
+                                                                                               Hint:
+                                                                                               The path is relative to Main class/ or better said its equivalent,
+                                                                                               the index.php file.
+
+                                                                                               Better use the compilationManager's specific options.
+                                                                                               -->
+                                                                                               <cd:element name="php-lib" minOccurs="0" maxOccurs="1">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="relativePathName" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                               <!--
+                                                                                               - -php-front <filename>
+                                                                                               Select the name for the php front file.-->
+                                                                                               <cd:element name="php-front" minOccurs="0" maxOccurs="1">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="filename" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                               <!--
+                                                                                                - -php-prefix <name>
+                                                                                                Prefix all classes with given name.-->
+                                                                                               <cd:element name="php-prefix" minOccurs="0" maxOccurs="1">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="prefix" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                            </cd:all>
+                                                                                       </cd:extension>
+
+                                                                                   </cd:complexContent>
+                                                                               </cd:complexType>
+                                                                           </cd:element>
+                                                                           <cd:element name="cpp" type="targetType"/>
+                                                                           <cd:element name="js" type="targetType"/>
+                                                                           <cd:element name="neko" type="targetType"/>
+                                                                           <cd:element name="as3" type="targetType"/>
+
+                                                                           <cd:element name="swf">
+                                                                               <cd:complexType>
+                                                                                   <cd:complexContent>
+                                                                                       <cd:extension base="targetType">
+                                                                                           <cd:all>
+
+                                                                                               <!--
+                                                                                               - -flash-strict More type strict flash API. -->
+                                                                                               <cd:element name="flash-strict" minOccurs="0"/>
+
+                                                                                               <!--
+                                                                                               -swf-version <version> Change the SWF version. -->
+                                                                                               <cd:element name="swf-version" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="version" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                               <!--
+                                                                                               -swf-header <header> Define SWF header (width:height:fps:color). -->
+                                                                                               <cd:element name="swf-header" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="header" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                               <!--
+                                                                                               -swf-lib <file> Add the SWF library to the compiled SWF.-->
+                                                                                               <cd:element name="swf-lib" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="file" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                               <!--
+                                                                                               -swf-lib-extern <file> Use the SWF library for type checking.-->
+                                                                                               <cd:element name="swf-lib-extern" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="file" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                           </cd:all>
+                                                                                       </cd:extension>
+                                                                                   </cd:complexContent>
+                                                                               </cd:complexType>
+                                                                           </cd:element>
+
+
+                                                                           <cd:element name="cs">
+                                                                               <cd:complexType>
+                                                                                   <cd:complexContent>
+                                                                                       <cd:extension base="targetType">
+                                                                                           <cd:all>
+
+                                                                                               <!--
+                                                                                               -net-lib <file>[@std] Add an external .NET DLL file. -->
+                                                                                               <cd:element name="net-lib" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="file" use="required"/>
+                                                                                                       <cd:attribute name="std" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                               <!--
+                                                                                               -net-std <file> Add a root std .NET DLL search path. -->
+                                                                                               <cd:element name="net-std" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="file" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                               <!--
+                                                                                               -c-arg <arg> Pass option arg to the native Java/C# compiler.-->
+                                                                                               <cd:element name="c-arg" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="arg" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                           </cd:all>
+                                                                                       </cd:extension>
+                                                                                   </cd:complexContent>
+                                                                               </cd:complexType>
+                                                                           </cd:element>
+
+                                                                           <cd:element name="java">
+                                                                               <cd:complexType>
+                                                                                   <cd:complexContent>
+                                                                                       <cd:extension base="targetType">
+                                                                                           <cd:all>
+                                                                                               <!--
+                                                                                               -c-arg <arg> Pass option arg to the native Java/C# compiler.-->
+                                                                                               <cd:element name="c-arg" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="arg" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+
+                                                                                               <!--
+                                                                                               -java-lib <file> Add an external JAR or class directory library.-->
+                                                                                               <cd:element name="java-lib" minOccurs="0">
+                                                                                                   <cd:complexType>
+                                                                                                       <cd:attribute name="file" use="required"/>
+                                                                                                   </cd:complexType>
+                                                                                               </cd:element>
+                                                                                           </cd:all>
+                                                                                       </cd:extension>
+                                                                                   </cd:complexContent>
+                                                                               </cd:complexType>
+                                                                           </cd:element>
+
+                                                                           <cd:element name="python" type="targetType"/>
+                                                                           <cd:element name="lua" type="targetType"/>
+                                                                           <cd:element name="hl" type="targetType"/>
+                                                                           <cd:element name="cppia" type="targetType"/>
+                                                                           <cd:element name="no-output"/>
+                                                                           <cd:element name="interp"/>
+
+
+
+
+                                                                       </cd:choice>
+                                                                   </cd:complexType>
+
+
+                                                               </cd:element>
+                                                           </cd:all>
+                                                           <cd:attribute name="taskName" use="required">
+                                                               <cd:simpleType>
+                                                                   <cd:restriction base="cd:string">
+                                                                       <cd:pattern value="\w+"/>
+                                                                   </cd:restriction>
+                                                               </cd:simpleType>
+                                                           </cd:attribute>
+                                                       </cd:complexType>
+                                                   </cd:element>
+                                               </cd:choice>
+                                           </cd:complexType>
+
+                                       </cd:element>
+                                   </cd:choice>
+
+
+                               </cd:complexType>
+
+
+                           </cd:element>
+                       </cd:all>
+
+
+                    </cd:complexType>
+
+                </cd:element>
+
+
+
+
+
+            </cd:sequence>
+        </cd:complexType>
+    </cd:element>
+
+    <cd:complexType name="targetType">
+        <cd:sequence>
+            <cd:element name="overwrite_main_cd_options" type="cd_options_type" minOccurs="0" maxOccurs="1"/>
+        </cd:sequence>
+
+        <!-- ... relative from within projectFolder. -->
+        <cd:attribute name="relativeTargetPath"/>
+
+    </cd:complexType>
+
+    <cd:complexType name="contributorsType">
+        <cd:choice minOccurs="0" maxOccurs="unbounded">
+
+                    <cd:element name="person">
+                        <cd:complexType>
+                            <cd:attribute name="familyname" use="required"/>
+                            <cd:attribute name="forename" use="required"/>
+                            <cd:attribute name="gender" use="required">
+                                <cd:simpleType>
+                                    <cd:restriction base="cd:string">
+                                        <cd:enumeration value="male"/>
+                                        <cd:enumeration value="female"/>
+                                        <cd:enumeration value="transMale"/>
+                                        <cd:enumeration value="transFemale"/>
+                                        <cd:enumeration value="intersexual"/>
+                                        <cd:enumeration value="noneOfTheAbove"/>
+                                    </cd:restriction>
+                                </cd:simpleType>
+                            </cd:attribute>
+                            <cd:attribute name="title" use="optional"/>
+                            <cd:attribute name="personalUrl" use="required"/>
+                        </cd:complexType>
+                    </cd:element>
+
+
+                </cd:choice>
+    </cd:complexType>
+
+
+    <cd:complexType name="cd_options_type">
+
+        <cd:all>
+
+           <!-- The haxe compiler arguments... -->
+
+            <cd:element name="compilationKind" minOccurs="1" maxOccurs="1">
+                <cd:complexType>
+                    <cd:choice>
+                        <cd:element name="haxeCompilerArguments">
+                            <cd:complexType>
+
+                                <cd:all >
+                                    <!--
+                                    -cp path
+                                    Adds the class path where .hx source files or packages (sub-directories) can be found.
+                                    Although several classPaths are theoretically allowed by the compiler only one is accepted here.-->
+                                    <cd:element name="cp" minOccurs="1">
+                                        <cd:complexType>
+                                            <cd:attribute name="classPath" use="required">
+                                                <cd:simpleType>
+                                                    <cd:restriction base="cd:string">
+                                                        <!--<cd:pattern value="^\w+\/?(\w+\/?)*$"/>-->
+                                                        <cd:pattern value="\w+\/?(\w+\/?)*"/>
+                                                    </cd:restriction>
+                                                </cd:simpleType>
+                                            </cd:attribute>
+                                        </cd:complexType>
+                                    </cd:element>
+                                    <!--
+                                        -main dot_path
+                                        Sets the class containing the   static function main() : Void   -->
+                                    <cd:element name="main" minOccurs="1">
+                                        <cd:complexType>
+                                            <cd:attribute name="mainPathNameDotNotation" use="required">
+                                                <cd:simpleType>
+                                                    <cd:restriction base="cd:string">
+                                                        <cd:pattern value="([a-z][a-zA-Z_]+\.)*[A-Z][a-zA-Z_]+"/>
+                                                    </cd:restriction>
+                                                </cd:simpleType>
+                                            </cd:attribute>
+                                        </cd:complexType>
+                                    </cd:element>
+
+
+                                    <!--    Regrettably the xsd does not allow an element within the <xsd:all> element
+                                            allow to have the attribute maxOccurs="unbounded".
+                                            So this horrible compromise is needed...
+
+                                            See:
+                                            https://stackoverflow.com/questions/2362365/xsd-doesnt-allow-me-to-have-unbounded-inside-all-indicator
+                                            https://docs.microsoft.com/en-us/sql/relational-databases/xml/unique-particle-attribution-constraint
+                                            -->
+                                    <cd:element name="extendedArguments" minOccurs="0">
+                                        <cd:complexType>
+                                            <cd:all>
+                                                <cd:element name="libraries" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:sequence>
+                                                            <!-- The folder that contains the libraries
+                                                             haxe-toolkit/haxe/lib/-->
+                                                            <cd:element name="haxeLibFolder" minOccurs="1" maxOccurs="1">
+                                                                <cd:complexType>
+                                                                    <cd:attribute name="absolutePath" use="required"/>
+                                                                </cd:complexType>
+                                                            </cd:element>
+
+                                                            <cd:choice minOccurs="1" maxOccurs="unbounded">
+                                                                <!--
+                                                                -lib library_name
+                                                                Adds a Haxelib library. By default the most recent version in the local Haxelib-->
+                                                                <cd:element name="lib" minOccurs="0">
+                                                                    <cd:complexType>
+                                                                        <!-- See: https://haxe.org/manual/compiler-usage.html -->
+                                                                        <cd:attribute name="library_name" use="required"/>
+                                                                        <cd:attribute name="versionOrCommitAppendix" use="optional"/>
+                                                                    </cd:complexType>
+                                                                </cd:element>
+                                                            </cd:choice>
+                                                        </cd:sequence>
+
+
+                                                    </cd:complexType>
+
+
+                                                </cd:element>
+                                                <!--
+                                                -D <var[=value]>
+                                                Define a conditional compilation flag.  -->
+                                                <cd:element name="D" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="keyword" use="required"/>
+                                                        <!-- If the keyword is followed by a value.
+                                                                They are resolved like this:   -D key=value  or    -D key   -->
+                                                        <cd:attribute name="value" use="required" default=""/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                -xml <file>
+                                                Generate XML types description. Useful for API documentation generation tools like Dox. -->
+                                                <cd:element name="xml" minOccurs="0" maxOccurs="1">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="targetFile"  use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                -v
+                                                Turn on verbose mode. -->
+                                                <cd:element name="v" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                -debug
+                                                Add debug information to the compiled code.
+                                                -->
+                                                <cd:element name="debug" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                -dce <std|full|no>
+                                                Set the Dead Code Elimination mode (default std). -->
+                                                <cd:element name="dce" minOccurs="0" maxOccurs="1">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="kind" default="std">
+                                                            <cd:simpleType>
+                                                                <cd:restriction base="cd:string">
+                                                                    <cd:enumeration value="std"/>
+                                                                    <cd:enumeration value="full"/>
+                                                                    <cd:enumeration value="no"/>
+                                                                </cd:restriction>
+                                                            </cd:simpleType>
+                                                        </cd:attribute>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!---
+                                                -resource <file>[@name]
+                                                Add a named resource file. -->
+                                                <cd:element name="resource" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="fileSlashNotation" use="required"/>
+                                                        <cd:attribute name="resourceName" use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                -prompt
+                                                Prompt on error. -->
+                                                <cd:element name="prompt" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                -cmd
+                                                Run the specified command after a successful compilation.
+                                                -->
+                                                <cd:element name="cmd" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="command" use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                - -no-traces
+                                                Don't compile trace calls in the program.-->
+                                                <cd:element name="no-traces" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -gen-hx-classes
+                                                Generate hx headers for all input classes. -->
+                                                <cd:element name="gen-hx-classes" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -display
+                                                Display code tips to provide completion information for IDEs and editors.
+                                                -->
+                                                <cd:element name="display" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -times
+                                                Measure compilation times.-->
+                                                <cd:element name="times" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -no-inline
+                                                Disable Inline.-->
+                                                <cd:element name="no-inline" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -no-opt
+                                                Disable code optimizations.-->
+                                                <cd:element name="no-inline" minOccurs="0" maxOccurs="1"/>
+
+                                                <!--
+                                                - -remap <package:target>
+                                                Remap a package to another one.-->
+                                                <cd:element name="remap" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="package" use="required"/>
+                                                        <cd:attribute name="target" use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                - -macro
+                                                Call the given initialization macro before typing anything else.-->
+                                                <cd:element name="macro" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="functionCall" use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                                - -wait <host:port>
+                                                Wait on the given port for commands to run).-->
+                                                <cd:element name="wait" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="host" use="required"/>
+                                                        <cd:attribute name="port" use="required">
+                                                            <cd:simpleType>
+                                                                <cd:restriction base="cd:int"/>
+                                                            </cd:simpleType>
+                                                        </cd:attribute>
+
+                                                    </cd:complexType>
+                                                </cd:element>
+
+
+                                                <!--
+                                                - -connect <host:port>
+                                                Connect on the given port and run commands there).-->
+                                                <cd:element name="connect" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="host" use="required"/>
+                                                        <cd:attribute name="port" use="required">
+                                                            <cd:simpleType>
+                                                                <cd:restriction base="cd:int"/>
+                                                            </cd:simpleType>
+                                                        </cd:attribute>
+
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                                <!--
+                                               - -cwd <dir>
+                                               Set current working directory. -->
+                                                <cd:element name="cwd" minOccurs="0">
+                                                    <cd:complexType>
+                                                        <cd:attribute name="dir" use="required"/>
+                                                    </cd:complexType>
+                                                </cd:element>
+
+                                            </cd:all>
+                                        </cd:complexType>
+                                    </cd:element>
+                                </cd:all>
+                            </cd:complexType>
+                        </cd:element>
+                        <cd:element name="hxml">
+                            <cd:complexType>
+                                <cd:attribute name="filePathName"/>
+                            </cd:complexType>
+                        </cd:element>
+                        <cd:element name="nme">
+                            <cd:complexType>
+                                <cd:attribute name="filePathName"/>
+                            </cd:complexType>
+                        </cd:element>
+                        <cd:element name="limeProjectXml">
+                            <cd:complexType>
+                                <cd:attribute name="filePathName"/>
+                            </cd:complexType>
+                        </cd:element>
+                    </cd:choice>
+                </cd:complexType>
+            </cd:element>
+
+
+
+
+            <cd:element name="compilerManagement_options" minOccurs="1">
+                <cd:complexType>
+                    <cd:annotation>
+                        <cd:documentation>These options are used from the compilationManager to prepare and to direct the compilation process. They are not handed over directly as compilation arguments.</cd:documentation>
+                    </cd:annotation>
+                    <cd:all>
+                        <cd:element name="generalOptions" minOccurs="1">
+                            <cd:complexType>
+                                <cd:all>
+                                    <cd:element name="projectInfo" minOccurs="1">
+                                        <cd:complexType>
+                                            <!-- ... the name, the application is supposed to have -->
+                                            <cd:attribute name="projectName" use="required">
+                                                <cd:simpleType>
+                                                    <cd:restriction base="cd:string">
+                                                        <cd:pattern value="\w+"/>
+                                                    </cd:restriction>
+                                                </cd:simpleType>
+                                            </cd:attribute>
+                                            <!-- The marketing name of the version. E.g.: myApp FireRooster -->
+                                            <cd:attribute name="alternativeVersionName" use="required">
+                                                <cd:simpleType>
+                                                    <cd:restriction base="cd:string">
+                                                        <cd:pattern value="\w+"/>
+                                                    </cd:restriction>
+                                                </cd:simpleType>
+                                            </cd:attribute>
+                                        </cd:complexType>
+                                    </cd:element>
+                                    <cd:element name="updateType" type="updateType_type" minOccurs="1"/>
+                                    <cd:element name="moveCompilateCopyTo" minOccurs="0">
+                                        <cd:complexType>
+                                            <cd:attribute name="absolutePath" use="required"/>
+                                        </cd:complexType>
+                                    </cd:element>
+                                    <cd:element name="contributors" type="contributorsType"/>
+                                </cd:all>
+                            </cd:complexType>
+                        </cd:element>
+                        <cd:element name="php_only" minOccurs="0" maxOccurs="1">
+                            <cd:complexType>
+                                <cd:all>
+
+                                    <cd:element name="setPhpLibrary">
+                                        <cd:complexType>
+                                            <!--
+                                            Initializes the compile argument 'php-lib' later on.
+                                            This path is set relative from the cwd.
+                                            If not set, the phpLibrary is not set. -->
+                                            <cd:attribute name="relativePath" use="required"/>
+                                        </cd:complexType>
+                                    </cd:element>
+
+                                </cd:all>
+                            </cd:complexType>
+                        </cd:element>
+                    </cd:all>
+                </cd:complexType>
+            </cd:element>
+        </cd:all>
+
+
+
+       <!-- </cd:sequence>-->
+
+    </cd:complexType>
+
+
+    <cd:complexType name="updateType_type">
+
+            <cd:all>
+                <cd:element name="uniqueSemVers" minOccurs="1">
+                    <cd:complexType>
+                        <cd:attribute name="value" default="true" use="required">
+                            <cd:simpleType>
+                                <cd:restriction base="cd:boolean"/>
+                            </cd:simpleType>
+                        </cd:attribute>
+                    </cd:complexType>
+                </cd:element>
+
+                <cd:element name="update">
+                    <cd:complexType>
+                        <cd:choice>
+                            <cd:element name="absoluteVersion">
+                                <cd:complexType>
+                                    <cd:attribute name="semVer" use="required">
+                                        <cd:simpleType>
+                                            <cd:restriction base="cd:string">
+                                                <cd:pattern value="([0-9]+)\.([0-9]+)\.([0-9]+)(-alpha(\.[0-9]+)?|-beta(\.[0-9]+)?|-rc(\.[0-9]+)?|-final)?"/>
+                                            </cd:restriction>
+                                        </cd:simpleType>
+                                    </cd:attribute>
+                                </cd:complexType>
+                            </cd:element>
+                            <cd:element name="majorVersion"/>
+                            <cd:element name="minorVersion"/>
+                            <cd:element name="patchVersion"/>
+                            <cd:element name="setVersionState">
+                                <cd:complexType>
+                                    <!--    If the versionState already exists and compilationDirectives.uniqueSemVers
+                                            is 'false' the versionStateVersion is increased. -->
+                                    <cd:attribute name="versionState" type="versionState_sympleType" use="required"/>
+                                </cd:complexType>
+                            </cd:element>
+                        </cd:choice>
+                    </cd:complexType>
+                </cd:element>
+
+            </cd:all>
+
+    </cd:complexType>
+
+
+    <cd:simpleType name="versionState_sympleType">
+        <cd:restriction base="cd:string">
+            <cd:enumeration value=""/>
+            <cd:enumeration value="alpha"/>
+            <cd:enumeration value="beta"/>
+            <cd:enumeration value="rc"/>
+            <cd:enumeration value="final"/>
+        </cd:restriction>
+    </cd:simpleType>
+
+
+</cd:schema>
