@@ -13,7 +13,19 @@
     <cd:element name="root">
         <cd:complexType>
             <cd:sequence>
-
+                <cd:element name="CoDi_info">
+                    <cd:complexType>
+                        <!-- Set the XSD-version according to the field 'compilationDirectives.xsd_version' !
+                             Set both values ( field and default value of xml attribute ) manually   -->
+                        <cd:attribute name="xsd-version" use="required" default="2.1.0">
+                            <cd:simpleType>
+                                <cd:restriction base="cd:string">
+                                    <cd:pattern value="([0-9]+)\.([0-9]+)\.([0-9]+)(-alpha(\.[0-9]+)?|-beta(\.[0-9]+)?|-rc(\.[0-9]+)?|-final)?"/>
+                                </cd:restriction>
+                            </cd:simpleType>
+                        </cd:attribute>
+                    </cd:complexType>
+                </cd:element>
                 <cd:element name="archive" minOccurs="1" maxOccurs="1">
                     <cd:complexType>
                         <cd:all>
@@ -51,7 +63,7 @@
                         </cd:all>
                     </cd:complexType>
                 </cd:element>
-                <cd:element name="executeDirective" >
+                <cd:element name="executeDirective">
                     <cd:complexType>
                         <cd:choice>
                             <cd:element name="createLibrary"> <!--minOccurs="1"-->
@@ -285,10 +297,15 @@
 
                            </cd:element>
 
+                           <!-- Todo: <allCompilationTasks> raus! -->
+                           <!--<cd:element name="allCompilationTasks" minOccurs="0">
+                               <cd:complexType>
+                                   <cd:choice  minOccurs="0" maxOccurs="unbounded">-->
+
                            <cd:element name="compile" minOccurs="0">
                                <cd:complexType>
 
-                                   <cd:choice minOccurs="1" maxOccurs="unbounded">
+                                   <cd:choice minOccurs="1" maxOccurs="1">
                                        <cd:element name="compilationTasks">
                                            <cd:complexType>
                                                <cd:choice minOccurs="1" maxOccurs="unbounded">
@@ -318,6 +335,12 @@
 
 
                            </cd:element>
+
+
+                               <!--    </cd:choice>
+                               </cd:complexType>
+                           </cd:element>-->
+
                        </cd:all>
 
 
@@ -337,6 +360,31 @@
     <cd:complexType name="targetType">
         <cd:sequence>
             <cd:element name="overwrite_main_cd_options" type="cd_options_type" minOccurs="0" maxOccurs="1"/>
+            <!-- This is supposed to copy identical java scripts to different target folders. -->
+            <cd:element name="copyTarget" minOccurs="0">
+                <cd:complexType>
+                    <cd:choice minOccurs="1" maxOccurs="unbounded">
+                        <cd:element name="copyTo" minOccurs="1">
+                            <cd:complexType>
+                                <cd:attribute name="relativePathName" use="required"/>
+                                <cd:attribute name="relativeTargetPathName" use="required"/>
+                                <!--
+                                Todo: Hier weiter!
+                                + Nicht das target kpieren, sondern den Ordner synchronisieren
+                                + Exclude List von oben ebenfalls implemtieren.
+                                + Dieses Element umbenennen ( <synchronize> )!
+                                + Dieses Element zentraler verpflanzen!
+                                        - - > in <executeDirective>
+                                    ... ebenfalls in den CompilationDirectives anpassen!
+                                -->
+
+
+
+                            </cd:complexType>
+                        </cd:element>
+                    </cd:choice>
+                </cd:complexType>
+            </cd:element>
         </cd:sequence>
 
         <!-- ... relative from within projectFolder. -->
@@ -920,11 +968,13 @@
                                         </cd:complexType>
                                     </cd:element>
                                     <cd:element name="updateType" type="updateType_type" minOccurs="1"/>
-                                    <cd:element name="moveCompilateCopyTo" minOccurs="0">
+                                   <!--
+                                   Has been replaced by 'copyTarget'
+                                   <cd:element name="moveCompilateCopyTo" minOccurs="0">
                                         <cd:complexType>
                                             <cd:attribute name="absolutePath" use="required"/>
                                         </cd:complexType>
-                                    </cd:element>
+                                    </cd:element>-->
                                     <cd:element name="contributors" type="contributorsType"/>
                                 </cd:all>
                             </cd:complexType>
