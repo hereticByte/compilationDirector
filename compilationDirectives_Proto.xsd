@@ -444,7 +444,7 @@
                                                 <cd:simpleType>
                                                     <cd:restriction base="cd:string">
                                                         <!--<cd:pattern value="^\w+\/?(\w+\/?)*$"/>-->
-                                                        <cd:pattern value="\w+\/?(\w+\/?)*"/>
+                                                        <cd:pattern value="[\w\W]+\/?([\w\W]+\/?)*"/>
                                                     </cd:restriction>
                                                 </cd:simpleType>
                                             </cd:attribute>
@@ -458,7 +458,7 @@
                                             <cd:attribute name="mainPathNameDotNotation" use="required">
                                                 <cd:simpleType>
                                                     <cd:restriction base="cd:string">
-                                                        <cd:pattern value="([a-z][a-zA-Z_]+\.)*[A-Z][a-zA-Z_]+"/>
+                                                        <cd:pattern value="([a-z][a-zA-Z_0-9]+\.)*[A-Z][a-zA-Z_0-9]+"/>
                                                     </cd:restriction>
                                                 </cd:simpleType>
                                             </cd:attribute>
